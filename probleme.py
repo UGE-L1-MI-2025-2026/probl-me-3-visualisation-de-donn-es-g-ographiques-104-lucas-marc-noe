@@ -2,10 +2,12 @@ from fltk import *
 import shapefile
 import math
 
+
+
 largeur = 800
-hauteur = 600
-taille = 400
-sf = shapefile.Reader("departement/departements-20180101")
+hauteur = 720
+taille = 1600
+sf = shapefile.Reader("departements-20180101")
 shape = sf.shape()
 
 def mercator(lat_degre,lon_degre):
@@ -23,10 +25,18 @@ def draw_terrain(scale=5):
     affichage des départements
     """
     cree_fenetre(largeur, hauteur)
-    i = 15
+    LISTE = [0,5,10,15,20,25,30,35,40,45]
+    compteur = 0
+    coeff = 20
+    i = 20
     while i<= 800:
-        rectangle(800,i-15,785,i,remplissage = "blue")
-        i += 15
+        if compteur in LISTE:
+            texte(757,i -14, str(compteur)+"°C", couleur="red", taille=7)
+            rectangle(780,i-coeff,800,i*2,remplissage = "blue")
+        else:
+            rectangle(780,i-coeff,800,i*2,remplissage = "blue")
+        compteur +=1
+        i += coeff
     lst_coords = []
     for shape in sf.shapes():
         pts = [mercator(latitude, lontitude) for (lontitude,latitude) in shape.points]
@@ -50,11 +60,10 @@ def draw_terrain(scale=5):
                 fin = parts[i + 1]
                 poly = []
                 for X,Y in pts[deb:fin]:
-                    Xp = (X - minx) * taille
+                    Xp = (X - minx) * taille -1400
                     Yp = (maxy - Y) * taille + 100
                     poly.append((Xp, Yp))
                 polygone(poly, couleur='black', remplissage = 'blue')
     attend_ev()
     ferme_fenetre()
-
 draw_terrain()
