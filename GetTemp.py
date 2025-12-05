@@ -9,20 +9,8 @@ import numpy as np
 
 df=pd.read_parquet('temperatures-traitées.parquet')
 
-dico_mois={'01':31,'02':28,'03':31,'04':30,'05':31,'06':30,'07':31,'08':31,'09':30,'10':31,'11':30,'12':31}
-list_annee=['2018','2019','2020','2021','2022','2023','2024','2025']
-bissextile=['2020','2024']
+liste_departement=df['departement'].unique().tolist()
 
-def set_date_mois(annee,mois):
-    str_date=[]
-    for jour in range(1,dico_mois[mois]+1):
-        if jour<=9:
-            str_jour='0'+str(jour)
-        else:
-            str_jour=str(jour)
-        dt=annee+'-'+mois+'-'+str_jour
-        str_date.append(dt)
-    return str_date
 
 #################################
 ###Partie temperatures moyenne###
@@ -93,22 +81,32 @@ def temp_to_color(temp):
     return temp_color
 
 
-def test_cercle(color):
-    fl.cree_fenetre(800,800)
-    fl.cercle(200, 200, 75, remplissage=str(color))
+def conv_finale(temp):
+    return rgb_to_hex(rgba_float_to_int(cmap(int(temp_to_color(temp)))))
 
-    fl.attend_ev()
-    fl.ferme_fenetre()
 
-    
-###TEST###
-temp_trouve=temp_moy_annee_dep('2024','Rhône')
-print(temp_trouve)
-t_ex=temp_to_color(temp_trouve)
-print(t_ex)
-a=rgba_float_to_int(cmap(int(t_ex)))#ATTENTION , sans le int un probleme de valeur apparait exemple: cmap(78.97 donne du jaune comme si c'etait la valeur maximale)
-print(a)
-test_cercle(rgb_to_hex(a))
 
 #stockage (dans un fichier txt) desdonnées annuelle par departement
 
+def data_file(annee):
+    try:
+        with open(annee+"-temperature-data.txt","w",encoding="utf-8") as f:
+            for departement in liste_departement:
+                tmoy=temp_moy_annee_dep(annee,departement)
+                tmoy_color=conv_finale(tmoy)
+                tmin=temp_min_annee_dep(annee,departement)
+                tmin_color=conv_finale(tmin)
+                tmax=temp_max_annee_dep(annee,departement)
+                tmax_color=conv_finale(tmax)
+                f.write(f"{departement} {tmoy} {tmoy_color} {tmin} {tmin_color} {tmax} {tmax_color}\n")
+    except IOError as e:
+        print(f"ERREUR FATALE D'ÉCRITURE : {e}")
+
+data_file("2025")
+data_file("2024")
+data_file("2023")
+data_file("2022")
+data_file("2021")
+data_file("2020")
+data_file("2019")
+data_file("2018")
