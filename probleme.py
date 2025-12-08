@@ -2,7 +2,6 @@ from fltk import *
 import shapefile
 import math
 
-
 colors = [
     "#0D0887", "#1B068E", "#290593", "#37049A", "#44039E", "#5102A3",
     "#5E01A6", "#6B01A6", "#7701A8", "#8402A8", "#900DA4", "#9C179E",
@@ -14,7 +13,7 @@ colors = [
 largeur = 800
 hauteur = 720
 taille = 1600
-sf = shapefile.Reader("departements-20180101")
+sf = shapefile.Reader("departement/departements-20180101")
 shape = sf.shape()
 
 def mercator(lat_degre,lon_degre):
@@ -27,7 +26,61 @@ def mercator(lat_degre,lon_degre):
     Y = math.log(math.tan(latitude/2 + math.pi/4))
     return X, Y
 
+def draw_dom():
+    rect_x1, rect_y1 = 30, 300
+    rect_x2, rect_y2 = 200, 550
 
+    box_w = (rect_x2 - rect_x1) // 2
+    box_h = (rect_y2 - rect_y1) // 3
+    dom_list = ["971", "972", "973", "974", "975", "976"]
+    offsets = [
+        (0, 0),
+        (1, 0), 
+        (0, 1),  
+        (1, 1),  
+        (1, 2),
+        (0, 2),  
+    ]
+    zoom_dom = 800
+
+    records = sf.records()
+    shapes = sf.shapes()
+
+    for (shape, rec) in zip(shapes, records):
+        dep_code = rec[0]
+
+        if dep_code not in dom_list:
+            continue
+
+        i = dom_list.index(dep_code)
+        ox, oy = offsets[i]
+        offset_x = rect_x1 + ox * box_w + 10
+        offset_y = rect_y1 + oy * box_h + 10
+
+        pts = []
+        for (lon, lat) in shape.points:
+            X, Y = mercator(lat, lon)
+            pts.append((X, Y))
+
+        xs = [p[0] for p in pts]
+        ys = [p[1] for p in pts]
+        minx, maxx = min(xs), max(xs)
+        miny, maxy = min(ys), max(ys)
+
+        parts = shape.parts[:]
+        parts.append(len(pts))
+
+        for i in range(len(parts) - 1):
+            deb = parts[i]
+            fin = parts[i+1]
+
+            poly = []
+            for X, Y in pts[deb:fin]:
+                Xp = (X - minx) * zoom_dom + offset_x
+                Yp = (maxy - Y) * zoom_dom + offset_y
+                poly.append((Xp, Yp))
+
+            polygone(poly, couleur='black', remplissage='cyan')
 
 
 def draw_terrain(scale=5):
@@ -35,7 +88,6 @@ def draw_terrain(scale=5):
     affichage des départements
     """
     cree_fenetre(largeur, hauteur)
-
 
     LISTE = [0,5,10,15,20,25,30,35,40,45]
     compteur = 0
@@ -73,11 +125,11 @@ def draw_terrain(scale=5):
                 fin = parts[i + 1]
                 poly = []
                 for X,Y in pts[deb:fin]:
-                    Xp = (X - minx) * taille -1400
+                    Xp = (X - minx) * taille - 1400
                     Yp = (maxy - Y) * taille + 100
                     poly.append((Xp, Yp))
                 polygone(poly, couleur='black', remplissage = 'blue')
-
+    rectangle(30, 300, 200, 550, remplissage = 'white', couleur = 'black')
     rectangle(50,700,750,685)
     x2 = 57
     cercle(x2, 692, 7.5,remplissage = "blue",tag="zone")
@@ -101,16 +153,14 @@ def draw_terrain(scale=5):
                 print("année 6")
             if 650 <= x <= 750 and 685<= y <= 700:
                 print("année 7")
-        elif type_ev(ev) == 'Right':
-            x2+= 5
-            deplace("zone",x2,692)
-
-
-            
-
+        elif type_ev(ev) == 'Touche':
+            tch = touche(ev)
+            if tch == 'Right':
+                deplace("zone",5,0)
+            if tch == 'Left':
+                deplace('zone',-5,0)
+        draw_dom()
         mise_a_jour()
     attend_ev()
     ferme_fenetre()
 draw_terrain()
-
-
