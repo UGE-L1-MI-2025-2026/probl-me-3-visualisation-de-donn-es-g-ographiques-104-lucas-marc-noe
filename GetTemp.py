@@ -1,5 +1,5 @@
 import pandas as pd
-#partie temperature
+from dico_departement import *
 import fltk as fl
 import matplotlib.cm as cm 
 import matplotlib.colors as mcolors
@@ -10,6 +10,12 @@ import numpy as np
 df=pd.read_parquet('temperatures-traitées.parquet')
 
 liste_departement=df['departement'].unique().tolist()
+liste_num_nom_departement=[]
+for nom_departement in liste_departement:
+    for num_departement in DEPARTMENTS.keys():
+        if nom_departement==DEPARTMENTS[num_departement]:
+            liste_num_nom_departement.append((num_departement,DEPARTMENTS[num_departement]))
+
 
 
 #################################
@@ -24,8 +30,6 @@ def temp_moy_annee_dep(annee,departement):
         return df_filtre['tmoy'].mean()
     return 0
 
-#print(temp_moy_annee_dep('2025','Rhône'))
-
 ###################################
 ###Partie temperatures maximales###
 ###################################
@@ -38,7 +42,6 @@ def temp_max_annee_dep(annee,departement):
         return df_filtre['tmax'].max()
     return 0
 
-#print(temp_max_annee_dep('2025','Rhône'))
 
 ###################################
 ###Partie temperatures minimales###
@@ -51,9 +54,6 @@ def temp_min_annee_dep(annee,departement):
     if not df_filtre.empty:
         return df_filtre['tmin'].min()
     return 0
-
-#print(temp_min_annee_dep('2024','Rhône'))
-
 
 #Association des temperatures
 
@@ -84,23 +84,29 @@ def temp_to_color(temp):
 def conv_finale(temp):
     return rgb_to_hex(rgba_float_to_int(cmap(int(temp_to_color(temp)))))
 
+a=3
+print(temp_to_color(a))
+print(cmap(int(temp_to_color(a))))
+print(rgba_float_to_int(cmap(int(temp_to_color(a)))))
 
 
+"""
 #stockage (dans un fichier txt) desdonnées annuelle par departement
-
 def data_file(annee):
     try:
         with open(annee+"-temperature-data.txt","w",encoding="utf-8") as f:
-            for departement in liste_departement:
+            for infos in liste_num_nom_departement:
+                num_departement,departement=infos
                 tmoy=temp_moy_annee_dep(annee,departement)
                 tmoy_color=conv_finale(tmoy)
                 tmin=temp_min_annee_dep(annee,departement)
                 tmin_color=conv_finale(tmin)
                 tmax=temp_max_annee_dep(annee,departement)
                 tmax_color=conv_finale(tmax)
-                f.write(f"{departement} {tmoy} {tmoy_color} {tmin} {tmin_color} {tmax} {tmax_color}\n")
+                f.write(f"{num_departement} {departement} {tmoy} {tmoy_color} {tmin} {tmin_color} {tmax} {tmax_color}\n")
     except IOError as e:
         print(f"ERREUR FATALE D'ÉCRITURE : {e}")
+
 
 data_file("2025")
 data_file("2024")
@@ -110,3 +116,4 @@ data_file("2021")
 data_file("2020")
 data_file("2019")
 data_file("2018")
+"""

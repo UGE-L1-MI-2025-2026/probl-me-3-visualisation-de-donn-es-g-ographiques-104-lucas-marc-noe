@@ -7,7 +7,7 @@ import shapefile
 largeur = 800
 hauteur = 600
 taille = 10
-sf = shapefile.Reader("departements-20180101")
+sf = shapefile.Reader("departement/departements-20180101")
 shape = sf.shape(0)
 print(shape.parts)
 def draw_terrain(scale=5):
